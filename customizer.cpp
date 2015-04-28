@@ -1,5 +1,5 @@
 #include <hrpModel/BodyCustomizerInterface.h>
-#include <fstream>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define DLL_EXPORT __declspec(dllexport)
 #else 
@@ -42,7 +42,7 @@ struct Customizer
 static const char** getTargetModelNames()
 {
     static const char* names[] = { 
-        "crankGear",
+        "ERGOCYCLE",
         0 };
 	
     return names;
@@ -53,11 +53,11 @@ static BodyCustomizerHandle create(BodyHandle bodyHandle, const char* modelName)
     Customizer* customizer = 0;
 	
     string name(modelName);
-    if(name == "crankGear"){
+    if(name == "ERGOCYCLE"){
         customizer = new Customizer;
         customizer->bodyHandle = bodyHandle;
-        customizer->springT = 0.0;    
-        customizer->dampingT = 1.0e1;
+        customizer->springT = 1.0e1;    
+        customizer->dampingT = 1.0e3;
         int jointIndex = bodyInterface->getLinkIndexFromName(bodyHandle, "CRANK_GEAR");
         if(jointIndex >=0 ){
             JointValSet& jointValSet = customizer->jointValSet;
@@ -80,15 +80,10 @@ static void destroy(BodyCustomizerHandle customizerHandle)
 }
 
 static void setVirtualJointForces(BodyCustomizerHandle customizerHandle)
-{	
-    ofstream file("test.txt", ofstream::out | ofstream::app);
+{
     Customizer* customizer = static_cast<Customizer*>(customizerHandle);
     JointValSet& trans = customizer->jointValSet;
     *(trans.torqueForcePtr) = - customizer->springT * (*trans.valuePtr) - customizer->dampingT * (*trans.velocityPtr);
-    if (file.is_open()){
-    	file << *(trans.torqueForcePtr);
-	file.close();
-    }
 }
 
 
