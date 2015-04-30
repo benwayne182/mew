@@ -1,5 +1,5 @@
 #include <hrpModel/BodyCustomizerInterface.h>
-
+#include <fstream>
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define DLL_EXPORT __declspec(dllexport)
 #else 
@@ -57,7 +57,7 @@ static BodyCustomizerHandle create(BodyHandle bodyHandle, const char* modelName)
         customizer = new Customizer;
         customizer->bodyHandle = bodyHandle;
         customizer->springT = 1.0e1;    
-        customizer->dampingT = 1;
+        customizer->dampingT = 1.0e1;
         int jointIndex = bodyInterface->getLinkIndexFromName(bodyHandle, "CRANK_GEAR");
         if(jointIndex >=0 ){
             JointValSet& jointValSet = customizer->jointValSet;
@@ -81,9 +81,14 @@ static void destroy(BodyCustomizerHandle customizerHandle)
 
 static void setVirtualJointForces(BodyCustomizerHandle customizerHandle)
 {
+    ofstream file("test_ben.txt", ofstream::out | ofstream::app);
+    if (file.is_open()){
     Customizer* customizer = static_cast<Customizer*>(customizerHandle);
     JointValSet& trans = customizer->jointValSet;
     *(trans.torqueForcePtr) = - customizer->springT * (*trans.valuePtr) - customizer->dampingT * (*trans.velocityPtr);
+    	file << *(trans.torqueForcePtr) << std::endl;
+	file.close();
+    }
 }
 
 
